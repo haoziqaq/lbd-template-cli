@@ -1,0 +1,29 @@
+{
+  "name": "lbd-template-cli",
+  "version": "1.0.1",
+  "description": "cli for building lbd-project-template",
+  "bin": {
+    "lbd": "index.js"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Common",
+    "developent",
+    "template",
+    "cli"
+  ],
+  "author": "haozijunqaq",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "commander": "^2.19.0",
+    "download-git-repo": "^1.1.0",
+    "handlebars": "^4.0.12",
+    "inquirer": "^6.2.1",
+    "log-symbols": "^2.2.0",
+    "ora": "^3.0.0"
+  }
+}
