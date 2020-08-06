@@ -14,7 +14,24 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const cwd = process.cwd();
-const ROUTES_ROOT = './src/views'
+const ROUTES_ROOTS = ['./src/views', './src/pages']
+
+/**
+ * 查找存在的目录
+ * @param roots 目录列表
+ * @returns {null}
+ */
+function findExistDir(roots) {
+  roots = JSON.parse(JSON.stringify(roots))
+  let existDir = null
+  while (existDir === null && roots.length > 0) {
+    const dir = roots.shift()
+    if (fs.existsSync(path.resolve(cwd, dir))) {
+      existDir = dir
+    }
+  }
+  return existDir
+}
 
 function formatDate(time, fmt) {
   if (!time) return '';
@@ -85,7 +102,7 @@ const downloadUtils = (name, dist) => {
 };
 
 program
-  .version('1.2.0', '-v, --version')
+  .version('1.3.1', '-v, --version')
   .command('create <name>')
   .action(name => {
     inquirer.prompt(projectCollection).then((result) => {
@@ -108,26 +125,29 @@ program
   .command('mv <route> [routeName] [template]')
   .description('创建路由文件')
   .action((route, routeName, template) => {
+    //区别项目
+    const routeRoot = findExistDir(ROUTES_ROOTS) || './src/views';
     let templateType = TemplateTypes.includes(template) ? template : 'simple';
     let tpl = fs.readFileSync(path.resolve(__dirname, './tpl', `./${templateType}.vue`)).toString('utf8');
     const pkg = JSON.parse(fs.readFileSync(path.resolve(cwd, './package.json')).toString('utf8'));
     tpl = `/**\r\n` +
-      `* @fileOverview ${routeName || '路由名称'}\r\n` +
-      `* @author ${pkg.author || '文件创建者'}\r\n` +
-      `* @date ${formatDate(new Date(), 'yyyy-MM-dd')}\r\n` +
-      `*/\r\n`
+      ` * @fileOverview ${routeName || '路由名称'}\r\n` +
+      ` * @author ${pkg.author || '文件创建者'}\r\n` +
+      ` * @date ${formatDate(new Date(), 'yyyy-MM-dd')}\r\n` +
+      ` */\r\n`
       + tpl
     if (!route.startsWith('/') || route.endsWith('/')) {
       spinner.fail(chalk.yellow('route参数必须以/开头, 不能以/结尾'));
       return;
     }
-    const filePath = path.resolve(cwd, ROUTES_ROOT, `.${route}/index.vue`);
+    const filePath = path.resolve(cwd, routeRoot, `.${route}/index.vue`);
     if (fs.existsSync(filePath)) {
-      //已存在目标路由文件
+      //已存在目标路由文件, 直接退出
       spinner.fail(chalk.yellow(`${route}路由文件已存在,为避免误操作覆盖文件的可能性,不提供覆盖功能,请自行删除路由文件重试`));
+      return
     } else {
       //不存在目标路由文件,检查目录是否存在
-      const fileDir = path.resolve(cwd, ROUTES_ROOT, `.${route}`);
+      const fileDir = path.resolve(cwd, routeRoot, `.${route}`);
       if (fs.existsSync(fileDir)) {
         //存在 直接写入
         fs.writeFileSync(filePath, Buffer.from(tpl, 'utf8'));
@@ -137,6 +157,27 @@ program
         fs.writeFileSync(filePath, Buffer.from(tpl, 'utf8'));
       }
       spinner.succeed(chalk.green('创建成功'));
+    }
+    //路由文件已生成，无差别处理pages.json
+    const pageJSONDir = path.resolve(cwd, './src/pages.json');
+    if (fs.existsSync(pageJSONDir)) {
+      //存在pages.json就处理pages字段
+      const json = JSON.parse(fs.readFileSync(pageJSONDir).toString('utf8'))
+      //判断路由配置是否存在, 存在就覆盖。
+      if (Array.isArray(json.pages)) {
+        const targetPath = `pages${route}/index`;
+        const existPathIndex = json.pages.findIndex(item => item.path === targetPath)
+        existPathIndex > -1 && json.pages.splice(existPathIndex, 1)
+        json.pages.push({
+          path: `pages${route}/index`,
+          style: {
+            enablePullDownRefresh: false,
+            navigationBarTitleText: routeName || '未设置页面标题'
+          }
+        })
+        const jsonString = JSON.stringify(json, null, 4)
+        fs.writeFileSync(pageJSONDir, Buffer.from(jsonString, 'utf8'))
+      }
     }
   })
 
