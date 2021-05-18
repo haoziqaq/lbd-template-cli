@@ -85,7 +85,7 @@ const downloadUtils = (name, dist) => {
       throw err
     } else {
       switch (name) {
-        case 'haoziqaq/varlet-vite-app':
+        case 'haoziqaq/varlet-vite-app#main':
           spinner.succeed(chalk.green(`模板下载成功, cd ${dist} -> yarn -> yarn dev`))
         case 'haoziqaq/lbd-vue-mobile-web-template':
           spinner.succeed(chalk.green(`模板下载成功, cd ${dist} -> yarn -> yarn serve`))
@@ -105,7 +105,7 @@ program
     inquirer.prompt(projectCollection).then((result) => {
       switch (result.util) {
         case '基于vue3+vite+varlet的移动端web项目':
-          downloadUtils('haoziqaq/varlet-vite-app', name)
+          downloadUtils('haoziqaq/varlet-vite-app#main', name)
           break
         case '基于vue+vant的移动端web项目':
           downloadUtils('haoziqaq/lbd-vue-mobile-web-template', name)
