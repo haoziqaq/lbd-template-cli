@@ -1,6 +1,6 @@
 {
   "name": "lbd-template-cli",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "cli for building lbd-project-template",
   "bin": {
     "lbd": "index.js"

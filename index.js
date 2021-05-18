@@ -87,6 +87,7 @@ const downloadUtils = (name, dist) => {
       switch (name) {
         case 'haoziqaq/varlet-vite-app#main':
           spinner.succeed(chalk.green(`模板下载成功, cd ${dist} -> yarn -> yarn dev`))
+          break
         case 'haoziqaq/lbd-vue-mobile-web-template':
           spinner.succeed(chalk.green(`模板下载成功, cd ${dist} -> yarn -> yarn serve`))
           break
