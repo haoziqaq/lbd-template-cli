@@ -40,7 +40,7 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style scoped lang="less">
 .main-container {
   display: flex;
   flex-direction: column;

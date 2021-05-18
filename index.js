@@ -1,20 +1,14 @@
 #!/usr/bin/env node
-//捕获指令
 const program = require('commander');
-//下载模板
 const download = require('download-git-repo');
-//带标记的打印
 const spinner = require('ora')();
-//交互
 const inquirer = require('inquirer');
-//文字上色
 const chalk = require('chalk');
-//系统命令
-const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const cwd = process.cwd();
 const ROUTES_ROOTS = ['./src/views', './src/pages']
+const version = require('./package.json').version
 
 /**
  * 查找存在的目录
@@ -90,11 +84,13 @@ const downloadUtils = (name, dist) => {
       throw err;
     } else {
       switch (name) {
+        case 'haoziqaq/varlet-vite-app':
+          spinner.succeed(chalk.green(`模板下载成功, cd ${ dist } -> yarn -> yarn dev`));
         case 'haoziqaq/lbd-vue-mobile-web-template':
-          spinner.succeed(chalk.green(`模板下载成功, cd ${ dist } -> npm install -> npm run serve`));
+          spinner.succeed(chalk.green(`模板下载成功, cd ${ dist } -> yarn -> yarn serve`));
           break;
         case 'haoziqaq/lbd-vue-uniapp-template':
-          spinner.succeed(chalk.green(`模板下载成功, cd ${ dist } -> npm install -> npm run dev:mp-weixin`));
+          spinner.succeed(chalk.green(`模板下载成功, cd ${ dist } -> yarn -> yarn dev:mp-weixin`));
           break;
       }
     }
@@ -102,11 +98,14 @@ const downloadUtils = (name, dist) => {
 };
 
 program
-  .version('1.3.1', '-v, --version')
+  .version(version, '-v, --version')
   .command('create <name>')
   .action(name => {
     inquirer.prompt(projectCollection).then((result) => {
       switch (result.util) {
+        case '基于vite+varlet的移动端web项目':
+          downloadUtils('haoziqaq/varlet-vite-app', name);
+          break;
         case '基于vue+vant的移动端web项目':
           downloadUtils('haoziqaq/lbd-vue-mobile-web-template', name);
           break;
@@ -122,16 +121,16 @@ program
 const TemplateTypes = ['simple', 'form', 'list', 'detail'];
 
 program
-  .command('mv <route> [routeName] [template]')
+  .command('mv <route> [template] [routeName]')
   .description('创建路由文件')
-  .action((route, routeName, template) => {
+  .action((route, template, routeName) => {
     //区别项目
     const routeRoot = findExistDir(ROUTES_ROOTS) || './src/views';
     let templateType = TemplateTypes.includes(template) ? template : 'simple';
     let tpl = fs.readFileSync(path.resolve(__dirname, './tpl', `./${templateType}.vue`)).toString('utf8');
     const pkg = JSON.parse(fs.readFileSync(path.resolve(cwd, './package.json')).toString('utf8'));
     tpl = `/**\r\n` +
-      ` * @fileOverview ${routeName || '路由名称'}\r\n` +
+      ` * @fileOverview ${routeName || route}\r\n` +
       ` * @author ${pkg.author || '文件创建者'}\r\n` +
       ` * @date ${formatDate(new Date(), 'yyyy-MM-dd')}\r\n` +
       ` */\r\n`
